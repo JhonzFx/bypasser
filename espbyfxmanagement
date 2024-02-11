@@ -1,3 +1,39 @@
+-- Your existing code...
+
+local AimbotButton = Instance.new("TextButton")
+AimbotButton.Text = "Toggle Aimbot"
+AimbotButton.Size = UDim2.new(0, 180, 0, 30)
+AimbotButton.Position = UDim2.new(0, 10, 0, 80)
+AimbotButton.BackgroundColor3 = Color3.fromRGB(255, 69, 0) -- Orange-Red color
+AimbotButton.TextColor3 = Color3.new(1, 1, 1)
+AimbotButton.Parent = Frame
+
+local aimbotEnabled = false
+
+local function toggleAimbot()
+    aimbotEnabled = not aimbotEnabled
+end
+
+-- Connect toggle function to aimbot button click event
+AimbotButton.MouseButton1Click:Connect(toggleAimbot)
+
+-- Aimbot function
+local function aimbot()
+    local closest = getClosestVisiblePlayerInFOV("Head")
+    if closest and closest.Character:FindFirstChild("Head") then
+        lookAt(closest.Character.Head.Position)
+    end
+end
+
+RunService.RenderStepped:Connect(function()
+    updateDrawings()
+    if aimbotEnabled then
+        aimbot()
+    end
+end)
+
+-- Your existing code...
+
 local Players = game:GetService("Players")
 local Teams = game:GetService("Teams")
 local RunService = game:GetService("RunService")
