@@ -1,0 +1,105 @@
+local Players = game:GetService("Players")
+local Teams = game:GetService("Teams")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Function to check if a player is behind a wall
+local function isPlayerBehindWall(player)
+    local character = player.Character
+    if not character then
+        return false
+    end
+    
+    local ray = Ray.new(LocalPlayer.Character.Head.Position, (character.Head.Position - LocalPlayer.Character.Head.Position).unit * 100)
+    local part, position = workspace:FindPartOnRay(ray, LocalPlayer.Character, false, true)
+    
+    return part and part:IsDescendantOf(character)
+end
+
+-- Function to create chams effect with team color
+local function createChams(character, teamColor)
+    local chams = Instance.new("BoxHandleAdornment")
+    chams.Size = character:GetExtentsSize() * 1.1
+    chams.Adornee = character
+    chams.AlwaysOnTop = true
+    chams.ZIndex = 5
+    chams.Color3 = teamColor or Color3.new(0, 1, 0) -- Default color is green
+    chams.Transparency = 0.5
+    chams.Visible = true
+    chams.Parent = character
+    return chams
+end
+
+-- Create GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.CoreGui
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 200, 0, 150)
+Frame.Position = UDim2.new(0, 10, 0, 10)
+Frame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+Frame.BorderSizePixel = 0
+Frame.Visible = true
+Frame.Parent = ScreenGui
+
+local Title = Instance.new("TextLabel")
+Title.Text = "ESP BY FXMANAGEMENT"
+Title.Size = UDim2.new(0, 180, 0, 30)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.BackgroundColor3 = Color3.new(0, 0, 0)
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextSize = 14
+Title.Parent = Frame
+
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Text = "Toggle Chams"
+ToggleButton.Size = UDim2.new(0, 180, 0, 30)
+ToggleButton.Position = UDim2.new(0, 10, 0, 40)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(32, 128, 255)
+ToggleButton.TextColor3 = Color3.new(1, 1, 1)
+ToggleButton.Parent = Frame
+
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Text = "-"
+MinimizeButton.Size = UDim2.new(0, 20, 0, 20)
+MinimizeButton.Position = UDim2.new(1, -30, 0, 5)
+MinimizeButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+MinimizeButton.TextColor3 = Color3.new(1, 1, 1)
+MinimizeButton.Parent = Frame
+
+local chamsEnabled = false
+
+-- Toggle chams function
+local function toggleChams()
+    chamsEnabled = not chamsEnabled
+end
+
+-- Toggle GUI visibility function
+local function toggleVisibility()
+    Frame.Visible = not Frame.Visible
+end
+
+-- Check for player's visibility every frame
+RunService.RenderStepped:Connect(function()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local character = player.Character
+            if character then
+                local chams = character:FindFirstChildOfClass("BoxHandleAdornment")
+                if isPlayerBehindWall(player) and chamsEnabled then
+                    local team = Teams:GetPlayerTeam(player)
+                    local teamColor = team and team.TeamColor.Color or nil
+                    if not chams then
+                        createChams(character, teamColor)
+                    end
+                elseif chams then
+                    chams.Transparency = chamsEnabled and 0.5 or 1
+                end
+            end
+        end
+    end
+end)
+
+-- Connect toggle function to button click event
+ToggleButton.MouseButton1Click:Connect(toggleChams)
+MinimizeButton.MouseButton1Click:Connect(toggleVisibility)
