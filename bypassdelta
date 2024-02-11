@@ -1,0 +1,82 @@
+import asyncio
+import base64
+import json
+import time
+import webbrowser
+from urllib.parse import urlencode, urlparse, parse_qs
+import discord
+from discord.ext import commands
+
+async def fetch_data(url):
+    await asyncio.sleep(1)
+    parsed_url = urlparse(url)
+    query_params = parse_qs(parsed_url.query)
+    id = query_params.get('id', [''])[0]
+    if parsed_url.path.startswith('/v1/authenticators'):
+        return {'key': f'key_for_{id}', 'captcha': True}
+    elif parsed_url.path.startswith('/v1/sessions/auth'):
+        await asyncio.sleep(1)
+        return {'redirect': f'https://example.com/?r=encoded_dest', 'key': f'key_for_{id}'}
+
+async def get_turnstile_response():
+    await asyncio.sleep(1)
+    return 'sample_turnstile_response'
+
+def decode_url(url):
+    # Simulate decoding URL
+    return url
+
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix='*', intents=intents)
+
+async def notification(message):
+    print(message)
+
+@bot.command()
+async def delta(ctx, url):
+    # Check if the title is 'Just a moment...'
+    if ctx.message.content == 'Just a moment...':
+        return
+    
+    link_info = await fetch_data(url)
+    
+    if link_info and link_info.get('key'):
+        key = link_info['key']
+        await notification('bypassed successfully')
+        await ctx.send(f'Bypassed successfully! Key: {key}')
+        return
+    
+    token = 'sample_token'
+    
+    if not token:
+        captcha_required = link_info.get('captcha') if link_info else False
+        captcha = await get_turnstile_response() if captcha_required else ''
+        
+        data = await fetch_data(f'https://api-gateway.platoboost.com/v1/sessions/auth/8/{id}')
+        
+        await notification('1/1 stages completed')
+        await asyncio.sleep(2)
+        
+        followed_url = data.get('redirect') if data else None
+        if followed_url:
+            decrypted_url = decode_url(followed_url)
+            encoded_dest = decrypted_url.split('?r=')[1]
+            followed_dest = base64.b64decode(encoded_dest).decode('utf-8')
+            await ctx.send(f'Following redirect to: {followed_dest} Key: {key}')
+        else:
+            await ctx.send('Failed to follow redirect.')
+    else:
+        await asyncio.sleep(5)
+        data = await fetch_data(f'https://api-gateway.platoboost.com/v1/sessions/auth/8/{id}/{token}')
+        
+        await notification('bypassed successfully')
+        await asyncio.sleep(5)
+        
+        redirect_url = data.get('redirect') if data else None
+        if redirect_url:
+            await ctx.send(f'Following redirect to: {redirect_url}')
+        else:
+            await ctx.send('Failed to follow redirect.')
+
+# Run the bot
+bot.run('')
