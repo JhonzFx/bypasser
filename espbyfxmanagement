@@ -1,23 +1,75 @@
--- Your existing code...
-
-local AimbotButton = Instance.new("TextButton")
-AimbotButton.Text = "Toggle Aimbot"
-AimbotButton.Size = UDim2.new(0, 180, 0, 30)
-AimbotButton.Position = UDim2.new(0, 10, 0, 80)
-AimbotButton.BackgroundColor3 = Color3.fromRGB(255, 69, 0) -- Orange-Red color
-AimbotButton.TextColor3 = Color3.new(1, 1, 1)
-AimbotButton.Parent = Frame
-
+local fov = 100
+local rayLength = 500 -- Adjust the ray length as needed
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local Cam = game.Workspace.CurrentCamera
 local aimbotEnabled = false
 
-local function toggleAimbot()
-    aimbotEnabled = not aimbotEnabled
+local FOVring = Drawing.new("Circle")
+FOVring.Visible = false
+FOVring.Thickness = 2
+FOVring.Color = Color3.fromRGB(128, 0, 128) -- Purple color
+FOVring.Filled = false
+FOVring.Radius = fov
+FOVring.Position = Cam.ViewportSize / 2
+
+local function updateDrawings()
+    local camViewportSize = Cam.ViewportSize
+    FOVring.Position = camViewportSize / 2
 end
 
--- Connect toggle function to aimbot button click event
-AimbotButton.MouseButton1Click:Connect(toggleAimbot)
+local function onKeyDown(input)
+    if input.KeyCode == Enum.KeyCode.Delete then
+        RunService:UnbindFromRenderStep("FOVUpdate")
+        FOVring:Remove()
+    end
+end
 
--- Aimbot function
+UserInputService.InputBegan:Connect(onKeyDown)
+
+local function lookAt(target)
+    local lookVector = (target - Cam.CFrame.Position).unit
+    local newCFrame = CFrame.new(Cam.CFrame.Position, Cam.CFrame.Position + lookVector)
+    Cam.CFrame = newCFrame
+end
+
+local function isPlayerVisible(player, trg_part)
+    local part = player.Character and player.Character:FindFirstChild(trg_part)
+    if part then
+        local ray = Ray.new(Cam.CFrame.Position, part.Position - Cam.CFrame.Position)
+        local hit, hitPosition, hitNormal = workspace:FindPartOnRayWithIgnoreList(ray, {Players.LocalPlayer.Character, player.Character})
+        return not hit
+    end
+    return false
+end
+
+local function getClosestVisiblePlayerInFOV(trg_part)
+    local nearest = nil
+    local last = math.huge
+    local playerMousePos = Cam.ViewportSize / 2
+    local localPlayerTeam = Players.LocalPlayer.Team
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= Players.LocalPlayer and player.Team ~= localPlayerTeam then
+            if isPlayerVisible(player, trg_part) then
+                local part = player.Character and player.Character:FindFirstChild(trg_part)
+                if part then
+                    local ePos = Cam:WorldToViewportPoint(part.Position)
+                    local distance = (Vector2.new(ePos.x, ePos.y) - playerMousePos).Magnitude
+
+                    if distance < last and distance < fov then
+                        last = distance
+                        nearest = player
+                    end
+                end
+            end
+        end
+    end
+
+    return nearest
+end
+
 local function aimbot()
     local closest = getClosestVisiblePlayerInFOV("Head")
     if closest and closest.Character:FindFirstChild("Head") then
@@ -25,119 +77,23 @@ local function aimbot()
     end
 end
 
-pcall(function()
-    RunService.RenderStepped:Connect(function()
-        updateDrawings()
-        if aimbotEnabled then
-            aimbot()
-        end
-    end)
-end)
-
--- Your existing code...
-
-local Players = game:GetService("Players")
-local Teams = game:GetService("Teams")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-
--- Function to check if a player is behind a wall
-local function isPlayerBehindWall(player)
-    local character = player.Character
-    if not character then
-        return false
-    end
-    
-    local ray = Ray.new(LocalPlayer.Character.Head.Position, (character.Head.Position - LocalPlayer.Character.Head.Position).unit * 100)
-    local part, position = workspace:FindPartOnRay(ray, LocalPlayer.Character, false, true)
-    
-    return part and part:IsDescendantOf(character)
-end
-
--- Function to create chams effect with team color
-local function createChams(character, teamColor)
-    local chams = Instance.new("BoxHandleAdornment")
-    chams.Size = character:GetExtentsSize() * 1.1
-    chams.Adornee = character
-    chams.AlwaysOnTop = true
-    chams.ZIndex = 5
-    chams.Color3 = teamColor or Color3.new(0, 1, 0) -- Default color is green
-    chams.Transparency = 0.5
-    chams.Visible = true
-    chams.Parent = character
-    return chams
-end
-
--- Create GUI
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Parent = game.CoreGui
-
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 200, 0, 150)
-Frame.Position = UDim2.new(0, 10, 0, 10)
-Frame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-Frame.BorderSizePixel = 0
-Frame.Visible = true
-Frame.Parent = ScreenGui
-
-local Title = Instance.new("TextLabel")
-Title.Text = "ESP BY FXMANAGEMENT"
-Title.Size = UDim2.new(0, 180, 0, 30)
-Title.Position = UDim2.new(0, 10, 0, 0)
-Title.BackgroundColor3 = Color3.new(0, 0, 0)
-Title.TextColor3 = Color3.new(1, 1, 1)
-Title.TextSize = 14
-Title.Parent = Frame
-
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Text = "Toggle Chams"
-ToggleButton.Size = UDim2.new(0, 180, 0, 30)
-ToggleButton.Position = UDim2.new(0, 10, 0, 40)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(32, 128, 255)
-ToggleButton.TextColor3 = Color3.new(1, 1, 1)
-ToggleButton.Parent = Frame
-
-local MinimizeButton = Instance.new("TextButton")
-MinimizeButton.Text = "-"
-MinimizeButton.Size = UDim2.new(0, 20, 0, 20)
-MinimizeButton.Position = UDim2.new(1, -30, 0, 5)
-MinimizeButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-MinimizeButton.TextColor3 = Color3.new(1, 1, 1)
-MinimizeButton.Parent = Frame
-
-local chamsEnabled = false
-
--- Toggle chams function
-local function toggleChams()
-    chamsEnabled = not chamsEnabled
-end
-
--- Toggle GUI visibility function
-local function toggleVisibility()
-    Frame.Visible = not Frame.Visible
-end
-
--- Check for player's visibility every frame
 RunService.RenderStepped:Connect(function()
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            local character = player.Character
-            if character then
-                local chams = character:FindFirstChildOfClass("BoxHandleAdornment")
-                if isPlayerBehindWall(player) and chamsEnabled then
-                    local team = Teams:GetPlayerTeam(player)
-                    local teamColor = team and team.TeamColor.Color or nil
-                    if not chams then
-                        createChams(character, teamColor)
-                    end
-                elseif chams then
-                    chams.Transparency = chamsEnabled and 0.5 or 1
-                end
-            end
-        end
+    updateDrawings()
+    if aimbotEnabled then
+        aimbot()
     end
 end)
 
--- Connect toggle function to button click event
-ToggleButton.MouseButton1Click:Connect(toggleChams)
-MinimizeButton.MouseButton1Click:Connect(toggleVisibility)
+-- Create a button to toggle aimbot
+local aimbotButton = Instance.new("TextButton")
+aimbotButton.Text = "Toggle Aimbot"
+aimbotButton.Parent = game:GetService("CoreGui") -- Attach to CoreGui to keep it visible even when GUI is closed
+aimbotButton.Position = UDim2.new(0, 0, 0, 0) -- Adjust position as needed
+aimbotButton.MouseButton1Click:Connect(function()
+    aimbotEnabled = not aimbotEnabled
+    if aimbotEnabled then
+        aimbotButton.Text = "Aimbot Enabled"
+    else
+        aimbotButton.Text = "Aimbot Disabled"
+    end
+end)
