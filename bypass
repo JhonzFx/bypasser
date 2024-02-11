@@ -1,187 +1,88 @@
-import os
-import re
-import time
-import math
-import urllib
-import random
-import string
-import base64
-import pygame
-import discord
 import asyncio
-import requests
-import datetime
-import threading
+import base64
+import json
+import time
 import webbrowser
-import subprocess
-from io import BytesIO
-import pygetwindow as gw
-from random import randint
-from selenium import webdriver
+from urllib.parse import urlencode
+import discord
 from discord.ext import commands
-from urllib.parse import urlparse
-from collections import defaultdict
-from captcha.image import ImageCaptcha
-from captcha.audio import AudioCaptcha
-from selenium.webdriver.chrome.options import Options
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import requests
-global api
 
-def yeslinesalt(text):
-    return text.replace("thisisaplecan","\n").replace("thisisaplecar","\r")
+# Function to simulate fetching data from an API
+async def fetch_data(url):
+    # Simulate fetching data from the API
+    if url.startswith('https://api-gateway.platoboost.com/v1/authenticators'):
+        # Simulate fetching link info
+        await asyncio.sleep(1)
+        return {'key': 'sample_key', 'captcha': True}
+    elif url.startswith('https://api-gateway.platoboost.com/v1/sessions/auth'):
+        # Simulate posting captcha response and getting redirected URL
+        await asyncio.sleep(1)
+        return {'redirect': 'https://example.com/?r=encoded_dest'}
 
+# Function to simulate fetching turnstile response
+async def get_turnstile_response():
+    # Simulate getting turnstile response
+    await asyncio.sleep(1)
+    return 'sample_turnstile_response'
 
-def UsingDeloreanAPI_Bypass(url):
-    response = requests.get("https://92c5-2a09-bac1-3280-00-11-1b2.ngrok-free.app/api/bypass?key=Delorean_YOURKEY&style&url="+url)
-    return yeslinesalt(response.text)
-intents = discord.Intents.all()
-intents.messages = True
+# Function to simulate decoding URL
+def decode_url(url):
+    # Simulate decoding URL
+    return url
 
-bot = commands.Bot(command_prefix=["!","."], intents=intents)
+# Bot setup
+intents = discord.Intents.default()
+bot = commands.Bot(command_prefix='!', intents=intents)
 
-requests_count = 0
+# Notification function
+async def notification(message):
+    print(message)
 
-# @app.before_request
-# def check_overload():
-    # global requests_count
-    # requests_count += 1
-
-    # if requests_count > 100:  # NÃºmero arbitrario de solicitudes para detectar sobrecarga
-        # abort(508)  # Devuelve un error 508 - Loop Detected
-
-# @bot.command(description="Set an new api! |-| Use : !api [APi]")
-# async def api(ctx,apiee):
-    # if ctx.author.id==589543636656586764:
-        # global api
-        # api=apiee
-        # await ctx.send("Api changed to : "+api)
-    # else:
-        # await ctx.reply("No")
-
-def gping(url):
-    start_time = time.time()
-    response = requests.get(url)
-    end_time = time.time()
-    
-    if response.status_code == 200:
-        print(f"Request to {url} was successful.")
-    else:
-        print(f"Request to {url} failed with status code {response.status_code}.")
-    
-    response_time_ms = (end_time - start_time) * 1000
-    return response_time_ms
-
-allowed_channel=[1198403550842196178, 1198447371873431563, 1198409735867732031]
-
-@bot.command(description="Bypass an adlink! |-| Use : !bypass [adlink]",alias=["b","byp"])
-async def bypass(ctx,url):
-    if "keyrblx" in url:
-        await ctx.reply("The site is currently compromised, when it is repaired we will bypass it again!")
-        return
-    r="1s"
-    embed1 = discord.Embed(title="DELOREAN'S BYPASSER",url="https://wooartai.vercel.app/myprojects/delorean",description=f"Api ping : {r}",colour=0xff0000)
-    embed1.set_author(name="Bypassing...")
-    embed1.set_thumbnail(url="https://media.discordapp.net/attachments/1033854662123716639/1204481445083750450/6439a416e83fdf147f0c12852e487701.png?ex=65d4e3c2&is=65c26ec2&hm=e8b40bff5902e0192613d6587309404d1282a7a154ea611baad5f05441dd5b58&=&format=webp&quality=lossless")
-    embed1.set_footer(text="Thanks for using delorean â¤ï¸â€ðŸ”¥",icon_url="https://slate.dan.onl/slate.png")
-    await ctx.reply(embed=embed1)
-    try:
-        r = await asyncio.to_thread(UsingDeloreanAPI_Bypass,url)
-    except Exception as e:
-        r="ERROR!"
-    if r!="[WBypasser]: Timeout":
-        await ctx.reply("# Bypassed! check your DM")
-        embed = discord.Embed(title="DELOREAN'S BYPASSER",url="https://wooartai.vercel.app/myprojects/delorean",description=f"Your bypassed url :\n```\n{str(r).replace(url,"")}\n```",colour=0x00b0f4)
-        embed.set_author(name="Bypassed : âœ…ï¸")
-        embed1.set_author(name="Bypassed : âœ…ï¸")
-        embed.set_thumbnail(url="https://media.discordapp.net/attachments/1033854662123716639/1204481445083750450/6439a416e83fdf147f0c12852e487701.png?ex=65d4e3c2&is=65c26ec2&hm=e8b40bff5902e0192613d6587309404d1282a7a154ea611baad5f05441dd5b58&=&format=webp&quality=lossless&")
-        embed.set_footer(text="Thanks for using delorean â¤ï¸â€ðŸ”¥",icon_url="https://slate.dan.onl/slate.png")
-        await ctx.author.send(embed=embed)
-    else:
-        r=await ctx.reply("# Your URL couldn't be bypassed!")
-        embed = discord.Embed(title="DELOREAN'S BYPASSER",url="https://wooartai.vercel.app/myprojects/delorean",description="Your url could not be processed correctly by delorean, we're sorry!\n\nplease try rebypassing your link",colour=0xff0000)
-        embed.set_author(name="Bypassed : âŽï¸")
-        embed1.set_author(name="Bypassed : âŽï¸")
-        embed.set_image(url="https://cdn.discordapp.com/attachments/1198447371873431563/1202615559510953994/imagen.png?ex=65ce1a04&is=65bba504&hm=41614f3a42ef2091f29d81324bcbeee7fd7b473a8e9d1951581df32366e456fc&")
-        embed.set_thumbnail(url="https://media.discordapp.net/attachments/1033854662123716639/1204481445083750450/6439a416e83fdf147f0c12852e487701.png?ex=65d4e3c2&is=65c26ec2&hm=e8b40bff5902e0192613d6587309404d1282a7a154ea611baad5f05441dd5b58&=&format=webp&quality=lossless&")
-        embed.set_footer(text="Thanks for using delorean â¤ï¸â€ðŸ”¥",icon_url="https://slate.dan.onl/slate.png")
-        await r.reply(embed=embed)
-
-bot.remove_command("help")
-
-@bot.command(description="ADMIN TEST |-| Use : !atest")
-async def atest(ctx):
-    if ctx.author.id==589543636656586764:
-        pass
-    else:
-        await ctx.send("Only for admins!")
-        return
-    embed = discord.Embed(title="Comprar Premium / Buy Premium",description="# Al comprar premium obienes los siguientes beneficios : \n* canal para soporte instantaneo (aveces puede tardar un poco)\n* Acceso a la api\n* Acceso a actualizaciones anticipadas\n* El bot sera mas rapido\n* Habla con el owner (idk para que podemos hablar de mujeres o lo que quieras)\n* Rol \"Premium\"\n# Costo del premium :\n* 500 robux y una mamada de pene (solo mujeres <:roses:1198777149977546842>\n============================================\n# When you purchase premium, you receive the following benefits:\n* Channel for instant support (sometimes it may take a while)\n* Access to the API\n* Access to early updates\n* The bot will be faster\n* Talk to the owner (idk why, we can talk about women or whatever you want)\n* \"Premium\" role\n# Cost of premium:\n* 500 Robux and a blowjob (only women <:roses:1198777149977546842>)",colour=0xf50000)
-    embed.set_author(name="Woozy",icon_url="https://images-ext-1.discordapp.net/external/rDt4W7c-qji_GgK2MHndo2eE2lQb8s4RxCjlNzSSXYA/%3Fsize%3D1024/https/cdn.discordapp.com/avatars/589543636656586764/44e3c12b5b55821387bb4390de49edc5.png?format=webp&quality=lossless")
-    embed.set_thumbnail(url="https://media.discordapp.net/attachments/1198403554898096168/1200214641725423626/6439a416e83fdf147f0c12852e487701.png?ex=65ce987d&is=65bc237d&hm=929f312e2d835851a33c77e997128f1c1b25182788ffcfb830c1973b8cce84e3&=&format=webp&quality=lossless")
-
-    await ctx.send(embed=embed)
-
-
+# Command to simulate delta function
 @bot.command()
-async def art(ctx, *, prompt):
-    allowed_channels = [1204966884462829618, 1204967406381047818, 1203822238835675186]
-    if ctx.channel.id not in allowed_channels:
-        await ctx.reply("Wrong channel, bro")
+async def delta(ctx):
+    # Check if the title is 'Just a moment...'
+    if ctx.message.content == 'Just a moment...':
         return
-
-    spee = "realistic"
-    if "--anime" in prompt:
-        spee = "anime"
-
-    encoded_prompt = urllib.parse.quote(prompt)
-    await ctx.reply("Generating your image... |-| Estimated time: 10s")
-    url = 'https://92c5-2a09-bac1-3280-00-11-1b2.ngrok-free.app/api/WooArtAI/SD/Generate?key=Delorean_YOURKEY&style=' + spee + '&prompt=' + encoded_prompt
-    response = await asyncio.to_thread(requests.get, url)
-
-    if response.status_code == 200:
-        image_data = response.content
-        data = {
-            "base64": image_data
-        }
-        await ctx.reply("Running security check, please wait...")
-        channel_nsfw = ctx.message.channel.nsfw
-        isnsfw = await asyncio.to_thread(requests.post, "https://icoservices.kube.isc.heia-fr.ch/nsfw-image-detector/b64", json=data)
-        spacegg = isnsfw.json()["prediction_cat"]
-
-        if channel_nsfw:
-            if spacegg=="nsfw":
-                prompt=prompt+" [DETECTED AS NSFW!]"
-            spacegg = "safe"
-
-        if spacegg == "safe":
-            image_bytes = base64.b64decode(image_data)
-            image = BytesIO(image_bytes)
-            if "[DETECTED AS NSFW!]" in prompt:
-                await ctx.reply(f"**{prompt}**", file=discord.File(image, 'art.png', spoiler=True))
-            else:
-                await ctx.reply(f"**{prompt}**", file=discord.File(image, 'art.png'))
-        elif spacegg=="nsfw":
-            await ctx.reply("NSFW generation detected, please go to the channels: <#1204967406381047818>")
+    
+    # Simulate getting ID from URL
+    id = 'sample_id'
+    
+    # Simulate fetching link info
+    link_info = await fetch_data(f'https://api-gateway.platoboost.com/v1/authenticators/8/{id}')
+    
+    if link_info.get('key'):
+        await notification('bypassed successfully')
+        return
+    
+    # Simulate getting token from URL
+    token = 'sample_token'
+    
+    if not token:
+        captcha_required = link_info.get('captcha')
+        captcha = await get_turnstile_response() if captcha_required else ''
+        
+        # Simulate posting captcha response and getting redirected URL
+        data = await fetch_data(f'https://api-gateway.platoboost.com/v1/sessions/auth/8/{id}')
+        
+        await notification('1/1 stages completed')
+        await asyncio.sleep(2)
+        
+        followed_url = data.get('redirect')
+        decrypted_url = decode_url(followed_url)
+        
+        encoded_dest = decoded_url.split('?r=')[1]
+        followed_dest = base64.b64decode(encoded_dest).decode('utf-8')
+        await ctx.send(f'Following redirect to: {followed_dest}')
     else:
-        await ctx.send('Error al realizar la solicitud.')
+        await asyncio.sleep(5)
+        data = await fetch_data(f'https://api-gateway.platoboost.com/v1/sessions/auth/8/{id}/{token}')
+        
+        await notification('bypassed successfully')
+        await asyncio.sleep(5)
+        
+        redirect_url = data.get('redirect')
+        await ctx.send(f'Following redirect to: {redirect_url}')
 
-@bot.command()
-async def help(ctx):
-    embed = discord.Embed(
-        title="Commands!",
-        description="there a list of working commands : ",
-        color=discord.Color.green(),
-    )
-
-    # Itera a travÃ©s de los comandos del bot y agrega sus nombres y descripciones al embed
-    for command in bot.commands:
-        if command.name != "help":  # Evita agregar el comando de ayuda a la lista
-            embed.add_field(
-                name=f"!{command.name}", value=command.description, inline=False
-            )
-
-    # EnvÃ­a el embed al canal donde se usÃ³ el comando
-    await ctx.send(embed=embed)
-
-bot.run("YOURTOKEN")
+# Run the bot
+bot.run('YOUR_DISCORD_BOT_TOKEN')
