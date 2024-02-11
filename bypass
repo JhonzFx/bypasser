@@ -7,48 +7,37 @@ from urllib.parse import urlencode
 import discord
 from discord.ext import commands
 
-# Function to simulate fetching data from an API
 async def fetch_data(url):
-    # Simulate fetching data from the API
     if url.startswith('https://api-gateway.platoboost.com/v1/authenticators'):
-        # Simulate fetching link info
         await asyncio.sleep(1)
         return {'key': 'sample_key', 'captcha': True}
     elif url.startswith('https://api-gateway.platoboost.com/v1/sessions/auth'):
-        # Simulate posting captcha response and getting redirected URL
         await asyncio.sleep(1)
         return {'redirect': 'https://example.com/?r=encoded_dest'}
 
-# Function to simulate fetching turnstile response
 async def get_turnstile_response():
     # Simulate getting turnstile response
     await asyncio.sleep(1)
     return 'sample_turnstile_response'
 
-# Function to simulate decoding URL
 def decode_url(url):
     # Simulate decoding URL
     return url
 
-# Bot setup
 intents = discord.Intents.default()
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix='*', intents=intents, help_command=None)
 
-# Notification function
 async def notification(message):
     print(message)
 
-# Command to simulate delta function
 @bot.command()
 async def delta(ctx):
     # Check if the title is 'Just a moment...'
     if ctx.message.content == 'Just a moment...':
         return
     
-    # Simulate getting ID from URL
     id = 'sample_id'
-    
-    # Simulate fetching link info
+
     link_info = await fetch_data(f'https://api-gateway.platoboost.com/v1/authenticators/8/{id}')
     
     if link_info.get('key'):
@@ -62,7 +51,6 @@ async def delta(ctx):
         captcha_required = link_info.get('captcha')
         captcha = await get_turnstile_response() if captcha_required else ''
         
-        # Simulate posting captcha response and getting redirected URL
         data = await fetch_data(f'https://api-gateway.platoboost.com/v1/sessions/auth/8/{id}')
         
         await notification('1/1 stages completed')
@@ -85,4 +73,4 @@ async def delta(ctx):
         await ctx.send(f'Following redirect to: {redirect_url}')
 
 # Run the bot
-bot.run('YOUR_DISCORD_BOT_TOKEN')
+bot.run('')
