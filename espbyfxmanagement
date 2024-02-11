@@ -25,11 +25,13 @@ local function aimbot()
     end
 end
 
-RunService.RenderStepped:Connect(function()
-    updateDrawings()
-    if aimbotEnabled then
-        aimbot()
-    end
+pcall(function()
+    RunService.RenderStepped:Connect(function()
+        updateDrawings()
+        if aimbotEnabled then
+            aimbot()
+        end
+    end)
 end)
 
 -- Your existing code...
